@@ -4,4 +4,4 @@ from util.spider import myCrawler
 # Inserire lista delle seed urls
 # Inserire lingua delle pagine
 
-myCrawler.crawl(['pisatoday.it'], ['http://www.pisatoday.it'], 'it')
+myCrawler.crawl(['siviaggia.it'], ['https://siviaggia.it'], 'it')

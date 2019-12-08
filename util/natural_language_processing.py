@@ -116,7 +116,7 @@ def topic_clustering(texts):
 
     show_wordcloud(' '.join(str(r) for v in texts for r in v))
 
-    def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=2):
+    def compute_coherence_values(dictionary, corpus, texts):
         """
             Compute c_v coherence for various number of topics
 
@@ -132,43 +132,37 @@ def topic_clustering(texts):
             model_list : List of LDA topic models
             coherence_values : Coherence values corresponding to the LDA model with respective number of topics
             """
-        top_number_topics = 1
-        previous_coherence = 0
-        previous_model = None
 
-        for num_topics in range(start, limit, step):
-            model = gensim.models.ldamodel.LdaModel(corpus=corpus,
-                                                    id2word=id2word,
-                                                    num_topics=num_topics,
-                                                    random_state=100,
-                                                    update_every=1,
-                                                    chunksize=100,
-                                                    passes=10,
-                                                    alpha='auto',
-                                                    per_word_topics=True)
+        model = gensim.models.ldamodel.LdaModel(corpus=corpus,
+                                                id2word=id2word,
+                                                num_topics=5,
+                                                random_state=100,
+                                                update_every=1,
+                                                chunksize=100,
+                                                passes=10,
+                                                alpha='auto',
+                                                per_word_topics=True)
 
-            coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
+        # Calcola la coerenza tra i topic
+        #coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
 
-            coherence_values.extend([coherencemodel.get_coherence()])
-            diff = coherencemodel.get_coherence() - previous_coherence
-            print(diff)
-            if diff < 0.01:
-                return previous_model, top_number_topics, previous_coherence
+        """Get the most significant topics (alias for `show_topics()` method).
 
-            else:
-                top_number_topics = num_topics
-                previous_coherence = coherencemodel.get_coherence()
-                previous_model = model
+                Parameters
+                ----------
+                num_topics : int, optional
+                    The number of topics to be selected, if -1 - all topics will be in result (ordered by significance).
+                num_words : int, optional
+                    The number of words to be included per topics (ordered by significance).
 
-    # Can take a long time to run.
-    optimal_model, top_number_topics, coherence = compute_coherence_values(dictionary=id2word, corpus=corpus,
-                                                                            texts=texts,
-                                                                           start=2, limit=10, step=2)
+                Returns
+                -------
+                list of (int, list of (str, float))
+                    Sequence with (topic_id, [(word, value), ... ])."""
 
-    print(optimal_model.print_topics())
+        myLogger.info("topics :" + str(model.print_topics()))
 
-    # Print the Keyword in the 10 topics
-    myLogger.info("Coherence ", coherence)
+    compute_coherence_values(id2word, corpus, texts)
 
 
 

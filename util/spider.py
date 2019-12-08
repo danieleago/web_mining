@@ -2,44 +2,40 @@ from multiprocessing import Process
 import scrapy
 from scrapy.conf import settings
 from scrapy.crawler import CrawlerProcess
-from scrapy.spiders import Rule
-
 from util.articleScraping import readArticle
 from util.natural_language_processing import topic_clustering
-from scrapy.contrib.linkextractors import LinkExtractor
 
 texts = []
 
+
 class Spider(scrapy.Spider):
     name = "spider"
-    rules = Rule(LinkExtractor(deny="never_get"), follow=True)
-    urls = set()
+    lang = 'it'
 
     def parse(self, response):
 
+        page = response.url
+
         global texts
 
-        # navigazione url
+        # Toppino per non analizzare le homepage
 
-        for url in response.xpath('//a/@href').extract():
+        link = page.replace("https://", "")
+        link = link.replace("http://", "")
 
-            url = response.urljoin(url)
+        if len(link.split("/")) > 1:
 
-            if self.urls.__contains__(url):
-              continue
-
-            self.urls.add(url)
-
-            keyowrds = readArticle(url, 'it')
+            keyowrds = readArticle(page, self.lang)
 
             if len(keyowrds) > 0:
                 texts.append(keyowrds)
 
-            # stop crawler
-            if len(texts) > 10:
-                break
+        # navigazione url
 
-            yield scrapy.Request(url, callback=self.parse)
+        for url in response.xpath('//a/@href').extract():
+            url = response.urljoin(url)
+
+            yield scrapy.Request(response.urljoin(url), callback=self.parse)
 
 
 # Inizializzazione crawler
@@ -51,10 +47,8 @@ class CrawlerScript:
         self.crawler = CrawlerProcess(settings)
 
     def _crawl(self, allowed_domains, start_urls, lang):
-        if lang == 'it':
-            self.crawler.crawl(Spider(), allowed_domains=allowed_domains, start_urls=start_urls)
-        #else:
-            #self.crawler.crawl(Spider(), allowed_domains=allowed_domains, start_urls=start_urls)
+
+        self.crawler.crawl(Spider(), allowed_domains=allowed_domains, start_urls=start_urls, lang=lang)
 
         self.crawler.start()
         self.crawler.stop()
@@ -68,6 +62,7 @@ class CrawlerScript:
 
 
 myCrawler = CrawlerScript()
+
 
 # crawler sulla lista di start_urls. la lista dei domini è necessaria per non naavigare le url verso altri domini
 # rispetto ai siti inseriti
