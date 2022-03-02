@@ -1,4 +1,4 @@
-Scrapy==1.5.1
+Scrapy==1.8.2
 newspaper3k==0.2.8
 spacy==2.0.12
 nltk==3.3
